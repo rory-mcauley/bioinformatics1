@@ -90,3 +90,36 @@ filtered_counts.df <- counts.df[
 
 # Printing the structure of the filtered gene counts
 str(filtered_counts.df)
+
+
+# Removing redundant objects from R environment
+rm(counts_anaerobic.df, counts_high_temp.df, counts_low_pH.df,
+   counts_pressure.df, counts_standard.df, counts.df, RSD_failed_genes)
+
+
+
+
+
+
+# Creating a DGEList object using the filtered gene counts
+counts.DGEList <- DGEList(counts = filtered_counts.df,
+                          genes = rownames(filtered_counts.df))
+
+head(counts.DGEList)
+
+# Printing the design table
+print(design.df)
+
+# Confirming samples are in the same order in the gene counts and design table
+summary(colnames(filtered_counts.df) == design.df$run)
+
+# Add grouping information to DGEList object
+counts.DGEList$samples$group <- as.factor(design.df$condition)
+
+# Printing counts.DGEList
+counts.DGEList
+
+# Creating an object to filter genes with low expression
+counts.keep <- filterByExpr(counts.DGEList)
+summary(counts.keep)
+
