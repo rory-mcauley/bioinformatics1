@@ -123,3 +123,53 @@ counts.DGEList
 counts.keep <- filterByExpr(counts.DGEList)
 summary(counts.keep)
 
+# Filtering lowly expressed genes
+counts.DGEList <- counts.DGEList[counts.keep, , keep.lib.sizes = FALSE]
+dim(counts.DGEList)
+
+# Removing counts.keep
+rm(counts.keep)
+
+
+# Printing the normalisation factors for the libraries
+counts.DGEList$samples$norm.factors
+
+# Calculating normalisation factors and applying them to counts.DGEList
+counts.DGEList <- calcNormFactors(counts.DGEList)
+counts.DGEList$samples$norm.factors
+
+
+# Estimating common dispersion and tagwise dispersion
+condition_ <- design.df$condition
+counts.DGEList <- estimateDisp(counts.DGEList, design = model.matrix(~condition_))
+
+counts.DGEList
+
+
+
+#Pairwise tests
+
+#Display groups we want to compare 
+condition_
+
+# Exact tests for differences between experimental conditions
+std_anaerobic.DGEExact <- exactTest(counts.DGEList, pair = c("standard",
+                                                             "anaerobic"))
+std_salt.DGEExact <- exactTest(counts.DGEList, pair = c("standard",
+                                                        "osmotic_pressure"))
+std_temp.DGEExact <- exactTest(counts.DGEList, pair = c("standard",
+                                                        "high_temp"))
+std_pH.DGEExact <- exactTest(counts.DGEList, pair = c("standard",
+                                                      "low_pH"))
+
+# Extracting most differentially expressed genes from exact tests
+std_anaerobic.topTags <- topTags(std_anaerobic.DGEExact)
+std_salt.topTags <- topTags(std_salt.DGEExact)
+std_temp.topTags <- topTags(std_temp.DGEExact)
+std_pH.topTags <- topTags(std_pH.DGEExact)
+
+# Printing the most differentially expressed genes
+std_anaerobic.topTags
+std_salt.topTags
+std_temp.topTags
+std_pH.topTags
