@@ -38,3 +38,55 @@ str(counts_high_temp.df)
 str(counts_low_pH.df)
 str(counts_pressure.df)
 
+
+# Defining function "RSD.test()"
+RSD.test <- function(dataframe){
+  # This function tests whether the relative standard deviation (RSD) is less
+  # than or equal to one for each row in a data frame.
+  # It adds the result to a new variable in the data frame called "RSD.test".
+  # For a given row, if data.frame$RSD.test is TRUE, that row has an RSD less
+  # than or equal to one, i.e. RSD <= 1.
+  # If data.frame$RSD.test is FALSE, that row has an RSD outside of this range.
+  RSD_tests = dataframe[,1]
+  for (row_index in 1:nrow(dataframe)){
+    row = as.numeric(dataframe[row_index,])
+    RSD = sd(row) / mean(row)
+    RSD_tests[row_index] = RSD <= 1 || is.na(RSD)
+  }
+  dataframe$RSD.test <- as.factor(RSD_tests)
+  levels(dataframe$RSD.test) <- c(FALSE, TRUE)
+  return(dataframe)
+}
+
+# Applying RSD.test() to gene count subsets
+counts_standard.df  <- RSD.test(counts_standard.df)
+counts_anaerobic.df <- RSD.test(counts_anaerobic.df)
+counts_high_temp.df <- RSD.test(counts_high_temp.df)
+counts_low_pH.df    <- RSD.test(counts_low_pH.df)
+counts_pressure.df  <- RSD.test(counts_pressure.df)
+
+
+# Printing the structure of the gene counts subsets
+str(counts_standard.df)
+
+
+# Creating list of genes which failed RSD test
+RSD_failed_genes <- rownames(counts_standard.df[
+  which(counts_standard.df$RSD.test == FALSE),])
+RSD_failed_genes <- append(RSD_failed_genes, rownames(counts_anaerobic.df[
+  which(counts_anaerobic.df$RSD.test == FALSE),]))
+RSD_failed_genes <- append(RSD_failed_genes, rownames(counts_high_temp.df[
+  which(counts_high_temp.df$RSD.test == FALSE),]))
+RSD_failed_genes <- append(RSD_failed_genes, rownames(counts_low_pH.df[
+  which(counts_low_pH.df$RSD.test == FALSE),]))
+RSD_failed_genes <- append(RSD_failed_genes, rownames(counts_pressure.df[
+  which(counts_pressure.df$RSD.test == FALSE),]))
+RSD_failed_genes <- unique(RSD_failed_genes)
+length(RSD_failed_genes)
+
+# Filtering gene counts
+filtered_counts.df <- counts.df[
+  which(!rownames(counts.df) %in% RSD_failed_genes),]
+
+# Printing the structure of the filtered gene counts
+str(filtered_counts.df)
